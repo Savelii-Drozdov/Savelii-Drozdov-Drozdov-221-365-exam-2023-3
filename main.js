@@ -1,10 +1,3 @@
-//http://exam-2023-1-api.std-900.ist.mospolytech.ru/api/orders 
-// http://exam-2023-1-api.std-900.ist.mospolytech.ru/api/routes?api_key=ff1c575c-8565-4a6d-8663-4aea8fb95b46
-
-
-
-
-
 
 
 
@@ -13,8 +6,10 @@ document.addEventListener('DOMContentLoaded', function () {
     const pagination = document.getElementById('pagination'); 
     const searchInput = document.getElementById('searchInput'); 
     const gidTableBody = document.getElementById('gidTableBody');
-    const paginationGit = document.getElementById('paginationGit'); 
+    const buttonForm = document.getElementById('buttonForm'); 
+    
     const searchButton = document.querySelector('.btn-primary');
+    
     
     let currentPage = 1;
     let currentPageG = 1;
@@ -30,29 +25,31 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(response => response.json())
             .then(data => {
                 allRoutesData = data; 
+                console.log(allRoutesData)
                 updataTable(currentPage);
             })
-            .catch(error => {
-                console.error('Ошибка получения данных о маршрутах:', error);
-            });
+            // .catch(error => {
+            //     console.error('Ошибка получения данных о маршрутах:', error);
+            // });
     };
 
-    function getGidData(){
-        const apiUrlG = `http://exam-2023-1-api.std-900.ist.mospolytech.ru/api/routes/2/guides?api_key=ff1c575c-8565-4a6d-8663-4aea8fb95b46`;
+    function getGidData(id, nameRoute){
+        const apiUrlG = `http://exam-2023-1-api.std-900.ist.mospolytech.ru/api/routes/${id}/guides?api_key=ff1c575c-8565-4a6d-8663-4aea8fb95b46`;
         
         fetch(apiUrlG)
             .then(response => response.json())
             .then(dataG => {
                 allGidData = dataG; 
                 console.log(dataG);
-                updataGid(currentPageG);
+                updataGid(currentPageG, nameRoute);
             })
-            .catch(error => {
-                console.error('Ошибка получения данных о гидах:', error);
-            });
+            // .catch(error => {
+            //     console.error('Ошибка получения данных о гидах:', error);
+            // });
 
     };
-    getGidData();
+   
+    
     getRoutesData();
     
     
@@ -79,17 +76,22 @@ document.addEventListener('DOMContentLoaded', function () {
             const objectsCell = document.createElement('td');
             const buttonCell = document.createElement('td');
             const selectButton = document.createElement('button');
+            let idRoute = undefined;
             
-
+        
             nameCell.textContent = route.name;
             descriptionCell.textContent = route.description;
             objectsCell.textContent = route.mainObject;
+            idRoute = route.id
 
             selectButton.textContent = 'Выбрать';
             selectButton.classList.add('btn', 'btn-secondary', 'selectRouteBtn');
             selectButton.addEventListener('click', function () {
                 row.classList.toggle('selected');
-                document.getElementById('nameRoute').innerText = `"${route.name}"`
+                document.getElementById('nameRoute').innerText = `"${route.name}"`;
+
+                getGidData(route.id, route.name);
+
             });
 
             buttonCell.appendChild(selectButton);
@@ -128,7 +130,9 @@ document.addEventListener('DOMContentLoaded', function () {
             selectButton.classList.add('btn', 'btn-secondary', 'selectRouteBtn');
             selectButton.addEventListener('click', function () {
                 row.classList.toggle('selected');
-                document.getElementById('nameRoute').innerText = `"${route.name}"`
+                document.getElementById('nameRoute').innerText = `"${route.name}"`;
+
+                getGidData(route.id,route.name);
             });
 
             buttonCell.appendChild(selectButton);
@@ -171,10 +175,10 @@ document.addEventListener('DOMContentLoaded', function () {
             li.appendChild(a);
             pagination.appendChild(li);
         }
-    }
+    };
 
 
-    function updataGid(page) {
+    function updataGid(page, nameRoute) {
         gidTableBody.innerHTML = '';
         const startIndex = (page - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
@@ -193,13 +197,17 @@ document.addEventListener('DOMContentLoaded', function () {
             langGit.textContent = gid.language;
             workGit.textContent = gid.workExperience;
             moneyGit.textContent = gid.pricePerHour;
-            
-
-
             selectButtonGit.textContent = 'Выбрать';
-            selectButtonGit.classList.add('btn', 'btn-secondary', 'selectGitBtn');
+            selectButtonGit.classList.add('btn', 'databutton', 'btn-secondary');
+            selectButtonGit.setAttribute('data-price-per-hour', gid.pricePerHour);
+            selectButtonGit.setAttribute('data-guide-id', gid.id);
+            selectButtonGit.setAttribute('data-route-id', routeId);
             selectButtonGit.addEventListener('click', function () {
-                row.classList.toggle('selected');
+                document.getElementById('nameRoute').innerText = `"${gid.name}"`;
+                document.getElementById('nameRoute').innerText = `"${nameRoute}"`;
+                
+                selectButtonGit.classList.toggle('selectedG');
+                buttonForm.click();
             });
 
             buttonGit.appendChild(selectButtonGit);
@@ -211,40 +219,120 @@ document.addEventListener('DOMContentLoaded', function () {
             row.appendChild(buttonGit)
 
             gidTableBody.appendChild(row);
-        })
+        });
+    };
 
 
-        createPaginationGit();
-    }
 
-    function createPaginationGit() {
 
-        paginationGit.innerHTML = '';
-        const totalPages = Math.ceil(allGidData.length / itemsPerPage);
 
-        for (let i = 1; i <= totalPages; i++) {
-            const li = document.createElement('li');
-            const a = document.createElement('a');
-            a.classList.add('page-link');
-            a.href = '#';
-            a.textContent = i;
 
-            if (i === currentPageG) {
-                li.classList.add('page-item', 'active');
-            } else {
-                li.classList.add('page-item');
-            }
+    document.getElementById('calculateCost').addEventListener('click', function () {
+        const hoursNumber = parseInt(document.getElementById('duration').value);
+        console.log(hoursNumber)
+        
+        const tourDate = new Date(document.getElementById('tourDate').value);
+        console.log(tourDate)
+        const startTime = document.getElementById('startTime').value;
+        console.log(startTime)
+        
+        
 
-            a.addEventListener('click', function (event) {
-                event.preventDefault();
-                currentPageG = i;
-                updataGid(currentPageG);
-            });
+        const isThisDayOff = calculateIsThisDayOff(tourDate);
+        console.log(isThisDayOff)
 
-            li.appendChild(a);
-            pagination.appendChild(li);
+        const isItMorning = calculateIsItMorning(startTime);
+        console.log(isItMorning)
+
+        const isItEvening = calculateIsItEvening(startTime);
+        console.log(isItEvening)
+
+
+        
+        let guidePricePerHour = parseFloat(document.querySelector('.btn.selectedG').getAttribute('data-price-per-hour'));
+        console.log(guidePricePerHour)
+        if (isNaN(guidePricePerHour)) {
+            guidePricePerHour = 1400;
         }
-    }
+        const numberOfVisitors = parseInt(document.getElementById('groupSize').value);
+        console.log(numberOfVisitors);
 
+        const totalPrice = calculatePrice(
+            guidePricePerHour,
+            hoursNumber,
+            isThisDayOff,
+            isItMorning,
+            isItEvening,
+            numberOfVisitors
+        );
+
+
+        document.getElementById('totalCost').value = totalPrice.toFixed(2);
+        const requestBody = {
+            guide_id: 2, // Пример значения
+            route_id: 20, // Пример значения
+            date: '2024-01-15', // Пример значения в формате YYYY-MM-DD
+            time: '14:30', // Пример значения в формате HH:MM
+            duration: 2, // Пример значения от 1 до 3
+            persons: 10, // Пример значения от 1 до 20
+            price: 1500, // Пример значения
+            optionFirst: 1, // Пример значения, передаваемого как 0 или 1 (ноль или единица)
+            optionSecond: 0, // Пример значения, передаваемого как 0 или 1 (ноль или единица)
+            student_id: 789 // Пример значения
+            // Добавьте другие значения, если необходимо
+        };
+
+    });
+
+
+    function calculatePrice(guideServiceCost, hoursNumber, isThisDayOff, isItMorning, isItEvening, numberOfVisitors) {
+        let totalPrice = guideServiceCost * hoursNumber * isThisDayOff + isItMorning + isItEvening;
+
+        if (numberOfVisitors > 0 && numberOfVisitors <= 5) {
+            totalPrice += 0; 
+        } else if (numberOfVisitors > 5 && numberOfVisitors <= 10) {
+            totalPrice += 1000; 
+        } else if (numberOfVisitors > 10 && numberOfVisitors <= 20) {
+            totalPrice += 1500;
+        }
+
+        return totalPrice;
+    };
+
+    function calculateIsThisDayOff(date) {
+        const dayOfWeek = date.getDay();
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            return 1.5; 
+        } else {
+            return 1; 
+        }
+    };
+
+    
+    function calculateIsItMorning(time) {
+        const startTime = new Date(`05/05/2024 ${time}`);
+
+        const morningStartTime = new Date(`05/05/2024 09:00`);
+        const morningEndTime = new Date(`05/05/2024 12:00`);
+
+        if (startTime >= morningStartTime && startTime <= morningEndTime) {
+            return 400;
+        } else {
+            return 0;
+        }
+    };
+
+    function calculateIsItEvening(time) {
+        const startTime = new Date(`05/05/2024 ${time}`); 
+
+        const eveningStartTime = new Date(`05/05/2024 20:00`);
+        const eveningEndTime = new Date(`05/05/2024 23:00`);
+
+        if (startTime >= eveningStartTime && startTime <= eveningEndTime) {
+            return 1000; 
+        } else {
+            return 0; 
+        }
+    };
 
 });
